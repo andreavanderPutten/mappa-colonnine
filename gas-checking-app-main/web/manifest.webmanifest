@@ -1,0 +1,16 @@
+{
+  "name": "Distributori: il prezzo più basso vicino a te",
+  "short_name": "Distributori",
+  "description": "Mappa dei distributori con i prezzi dei carburanti, dati ufficiali MIMIT.",
+  "lang": "it",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#E9ECE3",
+  "theme_color": "#14201A",
+  "icons": [
+    { "src": "icone/icona-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icone/icona-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icone/icona-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "estrazione": "2026-10-07",
+  "distributori": [
+    {
+      "id": 100001,
+      "nome": "Colonnina BeCharge",
+      "bandiera": "BeCharge",
+      "indirizzo": "Via Roma, 15",
+      "comune": "Torino",
+      "lat": 45.070,
+      "lon": 7.686,
+      "prezzi": {
+        "elettrica_ac": { "self": 0.65 },
+        "elettrica_dc": { "self": 0.85 }
+      },
+      "altri": {},
+      "aggiornato": "2026-10-07"
+    }
+  ]
+}

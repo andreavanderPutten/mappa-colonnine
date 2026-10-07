@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Distributori: il prezzo più basso vicino a te</title>
+
+  <!-- App installabile: nome, icone e colori per la schermata Home -->
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" type="image/png" href="icone/icona-192.png">
+  <link rel="apple-touch-icon" href="icone/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-title" content="Distributori">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#14201A">
+
+  <!-- Su iPhone evita che indirizzi e numeri diventino link sottolineati -->
+  <meta name="format-detection" content="telephone=no, address=no, email=no">
+
+  <!-- MapLibre: la libreria che disegna la mappa -->
+  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5/dist/maplibre-gl.css">
+
+  <!-- Caratteri: Bricolage Grotesque per i prezzi, DM Sans per il resto -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700&family=DM+Sans:wght@400;500;600&display=swap">
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main id="mappa" aria-label="Mappa dei distributori"></main>
+
+  <!-- Scelta del carburante e ricarica elettrica -->
+  <nav id="carburanti" aria-label="Carburante">
+    <button type="button" data-carburante="benzina" aria-pressed="true">Benzina</button>
+    <button type="button" data-carburante="gasolio" aria-pressed="false">Gasolio</button>
+    <button type="button" data-carburante="gpl" aria-pressed="false">GPL</button>
+    <button type="button" data-carburante="metano" aria-pressed="false">Metano</button>
+    <button type="button" data-carburante="elettrica_ac" aria-pressed="false">Ricarica AC</button>
+    <button type="button" data-carburante="elettrica_dc" aria-pressed="false">Ricarica DC</button>
+  </nav>
+
+  <p id="suggerimento" class="pillola" hidden>Avvicinati per vedere i prezzi</p>
+  <p id="avviso" class="pillola avviso" role="alert" hidden></p>
+
+  <!-- Riquadro in basso: il piu' economico della zona (il contenuto lo scrive app.js) -->
+  <section id="migliore" class="pannello" aria-label="Il più economico in questa zona" hidden></section>
+
+  <!-- Scheda del distributore selezionato (il contenuto lo scrive app.js) -->
+  <section id="scheda" class="pannello" role="dialog" aria-labelledby="scheda-titolo" hidden></section>
+
+  <script src="https://unpkg.com/maplibre-gl@5/dist/maplibre-gl.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

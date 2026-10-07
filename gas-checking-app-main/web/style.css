@@ -1,0 +1,353 @@
+/* Colori e misure presi dal mockup */
+:root {
+  --inchiostro: #14201A;
+  --grigio: #55615A;
+  --verde: #16743E;
+  --giallo: #F0B429;
+  --rosso: #B93A26;
+  --bianco: #FFFFFF;
+  --fondo-chiaro: #F3F5EF;
+  --fondo-bottone: #EEF1E8;
+  --ombra: 0 2px 10px rgba(20, 32, 26, 0.18);
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: 'DM Sans', system-ui, sans-serif;
+  color: var(--inchiostro);
+  background: #E9ECE3;
+}
+
+button, a { font: inherit; color: inherit; }
+
+button:focus-visible, a:focus-visible {
+  outline: 3px solid var(--inchiostro);
+  outline-offset: 2px;
+}
+
+[hidden] { display: none !important; }
+
+/* La mappa occupa tutto lo schermo */
+#mappa {
+  position: fixed;
+  inset: 0;
+}
+
+/* ---------- Scelta del carburante ---------- */
+#carburanti {
+  position: fixed;
+  top: calc(16px + env(safe-area-inset-top, 0px));
+  left: 16px;
+  right: 16px;
+  z-index: 2;
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+#carburanti button {
+  flex-shrink: 0;
+  height: 44px;
+  padding: 0 16px;
+  border: none;
+  border-radius: 22px;
+  background: var(--bianco);
+  box-shadow: 0 1px 4px rgba(20, 32, 26, 0.16);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+#carburanti button[aria-pressed="true"] {
+  background: var(--inchiostro);
+  color: var(--bianco);
+}
+
+/* ---------- Pillole sopra la mappa ---------- */
+.pillola {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
+  margin: 0;
+  padding: 10px 16px;
+  background: var(--bianco);
+  border-radius: 999px;
+  box-shadow: var(--ombra);
+  font-size: 15px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+#suggerimento {
+  bottom: calc(40px + env(safe-area-inset-bottom, 0px));
+}
+
+.avviso {
+  top: calc(72px + env(safe-area-inset-top, 0px));
+  width: max-content;
+  max-width: calc(100% - 32px);
+  white-space: normal;
+  text-align: center;
+  border-radius: 16px;
+  background: var(--rosso);
+  color: var(--bianco);
+}
+
+/* ---------- Pannelli in basso (riquadro e scheda) ---------- */
+.pannello {
+  position: fixed;
+  left: 12px;
+  right: 12px;
+  bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  z-index: 3;
+  max-width: 420px;
+  padding: 16px;
+  background: var(--bianco);
+  border-radius: 24px;
+  box-shadow: 0 -2px 24px rgba(20, 32, 26, 0.18);
+}
+
+.pannello p { margin: 0; }
+
+.etichetta {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--grigio);
+}
+
+.prezzo-grande {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 40px;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--verde);
+}
+
+.prezzo-grande small {
+  font-family: 'DM Sans', system-ui, sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--grigio);
+}
+
+.luogo {
+  font-size: 14px;
+  color: var(--grigio);
+}
+
+.fonte {
+  margin-top: 10px !important;
+  font-size: 12px;
+  color: var(--grigio);
+}
+
+.vuoto { font-size: 15px; }
+
+.azioni {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.bottone {
+  height: 48px;
+  padding: 0 18px;
+  border: none;
+  border-radius: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.bottone.primario {
+  flex-grow: 1;
+  background: var(--inchiostro);
+  color: var(--bianco);
+}
+
+.bottone.secondario { background: var(--fondo-bottone); }
+
+/* ---------- Scheda del distributore ---------- */
+#scheda {
+  max-height: min(75vh, 620px);
+  overflow-y: auto;
+}
+
+.scheda-testa {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.scheda-testa > div { flex-grow: 1; min-width: 0; }
+
+.scheda-testa h2 {
+  margin: 0;
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 20px;
+  line-height: 1.2;
+}
+
+.iniziale {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--inchiostro);
+  color: var(--bianco);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.chiudi {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border: none;
+  border-radius: 50%;
+  background: var(--fondo-bottone);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.listino-box {
+  background: var(--fondo-chiaro);
+  border-radius: 16px;
+  padding: 6px;
+}
+
+.listino {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.listino th,
+.listino td {
+  padding: 9px 10px;
+  text-align: right;
+}
+
+.listino thead th {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--grigio);
+}
+
+.listino thead th:first-child,
+.listino th[scope="row"],
+.listino th[scope="colgroup"] {
+  text-align: left;
+}
+
+.listino th[scope="row"] {
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.listino td {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 17px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.listino td.manca { color: var(--grigio); font-weight: 400; }
+
+/* Il carburante scelto in alto e' evidenziato */
+.listino tr.scelto { background: var(--bianco); }
+.listino tr.scelto th[scope="row"] { font-weight: 700; }
+
+.listino th[scope="colgroup"] {
+  padding-top: 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--grigio);
+}
+
+/* Sul telefono i controlli della mappa salgono sopra il pannello */
+@media (max-width: 640px) {
+  .maplibregl-ctrl-bottom-right,
+  .maplibregl-ctrl-bottom-left {
+    bottom: var(--spazio-basso, 0px);
+  }
+}
+
+/* ---------- Gocce ---------- */
+/* La goccia e' un quadrato con un angolo appuntito, ruotato di 45 gradi */
+.goccia {
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: none;
+  background: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.goccia::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--colore);
+  border: 2px solid var(--bianco);
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  box-shadow: 0 3px 8px rgba(20, 32, 26, 0.28);
+}
+
+.goccia span {
+  position: relative; /* sta sopra la forma colorata */
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--testo);
+}
+
+.goccia.verde  { --colore: var(--verde);  --testo: var(--bianco); }
+.goccia.giallo { --colore: var(--giallo); --testo: #2B2100; }
+.goccia.rosso  { --colore: var(--rosso);  --testo: var(--bianco); }
+
+/* Il distributore piu' economico della zona e' un po' piu' grande */
+.goccia.migliore { width: 52px; height: 52px; }
+.goccia.migliore::before { border-width: 3px; }
+.goccia.migliore span { font-size: 15px; }
+
+.goccia:focus-visible {
+  outline: 3px solid var(--inchiostro);
+  outline-offset: 6px;
+  border-radius: 50%;
+}
+
+/* Testo letto dagli screen reader ma invisibile */
+.nascosto {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+/* Colore blu per le colonnine elettriche */
+/* Colore blu per le colonnine elettriche */
+.goccia.elettrica { --colore: #0d6efd; --testo: var(--bianco); }
