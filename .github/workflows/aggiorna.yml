@@ -34,8 +34,8 @@ jobs:
 
       - name: Esegue gli script di aggiornamento
         run: |
-          python scripts/prepara_dati.py
-          python scripts/aggiorna_tariffe.py
+          python gas-checking-app-main/scripts/prepara_dati.py
+          python gas-checking-app-main/scripts/aggiorna_tariffe.py
 
       - name: Configura GitHub Pages
         uses: actions/configure-pages@v6
@@ -43,7 +43,7 @@ jobs:
       - name: Carica la cartella web
         uses: actions/upload-pages-artifact@v5
         with:
-          path: web
+          path: gas-checking-app-main/web
 
       - name: Pubblica il sito
         id: deployment
