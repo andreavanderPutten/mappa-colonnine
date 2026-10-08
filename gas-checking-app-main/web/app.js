@@ -1,8 +1,3 @@
-// =====================================================================
-// App Distributori - fase 4: carburanti + COLONNINE ELETTRICHE DINAMICHE
-// =====================================================================
-
-// ---------- Impostazioni ----------
 const FILE_DATI = 'data/distributori.json';
 const CENTRO_ITALIA = [12.5, 42.3];      // MapLibre vuole [longitudine, latitudine]
 const ZOOM_GOCCE = 12;                   // da questo zoom in su compaiono le gocce con il prezzo
@@ -17,14 +12,16 @@ const NOMI = { benzina: 'Benzina', gasolio: 'Gasolio', gpl: 'GPL', metano: 'Meta
 const NOMI_IN_FRASE = { benzina: 'benzina', gasolio: 'gasolio', gpl: 'GPL', metano: 'metano', elettrica_ac: 'ricarica lenta', elettrica_dc: 'ricarica veloce' };
 
 // ---------- Stato ----------
-let distributori = [];     // tutti i distributori letti dal file JSON e API
-let dataPrezzi = '';       // giorno a cui si riferiscono i prezzi, es. "3 ottobre"
-let carburante = 'benzina';
-let posizioneUtente = null; // [lon, lat], quando il browser ce la da'
-let gocce = [];             // le gocce attualmente sulla mappa
-let migliore = null;        // { d, prezzo, modo }: il piu' economico nella zona visibile
-let selezionato = null;     // distributore aperto nella scheda
-let caricamentoInCorso = false; // per evitare di fare troppe chiamate all'API
+let distributoriCarburante = []; // Dati reali MIMIT (benzina, gasolio, gpl, metano)
+let distributoriEV = [];         // Dati dinamici da OpenChargeMap
+let tariffeOperatori = {};       // Listino prezzi EV reale (dal tuo script Python)
+let dataPrezzi = '';             // giorno a cui si riferiscono i prezzi, es. "3 ottobre"
+let carburante = 'benzina';      // Determina cosa mostrare ('benzina', 'elettrica_ac', ecc.)
+let posizioneUtente = null;      // [lon, lat], quando il browser ce la da'
+let gocce = [];                  // le gocce attualmente sulla mappa
+let migliore = null;             // { d, prezzo, modo }: il piu' economico nella zona visibile
+let selezionato = null;          // distributore aperto nella scheda
+let caricamentoInCorso = false;  // per evitare di fare troppe chiamate all'API
 
 // ---------- Mappa ----------
 const mappa = new maplibregl.Map({
@@ -51,6 +48,11 @@ posizione.on('geolocate', (evento) => {
 posizione.on('error', () => mostraAvviso('Posizione non disponibile.', 6000));
 
 // ---------- Funzioni di supporto ----------
+
+// SCEGLIE IN AUTOMATICO LA LISTA CORRETTA DA USARE
+function getListaAttiva() {
+  return carburante.startsWith('elettrica') ? distributoriEV : distributoriCarburante;
+}
 
 function formattaPrezzo(prezzo) {
   return prezzo.toFixed(3).replace('.', ',');
@@ -118,16 +120,30 @@ function aggiornaSpazioBasso() {
   document.documentElement.style.setProperty('--spazio-basso', `${altezza}px`);
 }
 
-// ---------- Dati Statici (Benzina) ----------
+// ---------- Dati Statici ----------
 async function caricaDati() {
   try {
-    const risposta = await fetch(FILE_DATI);
-    if (!risposta.ok) throw new Error(`HTTP ${risposta.status}`);
-    const dati = await risposta.json();
-    distributori = dati.distributori;
-    dataPrezzi = formattaData(dati.estrazione);
+    const risTariffe = await fetch('data/tariffe.json');
+    if (risTariffe.ok) {
+      const datiTariffe = await risTariffe.json();
+      tariffeOperatori = datiTariffe.operatori;
+    }
   } catch (e) {
-    console.warn("Dati benzina non trovati. Carico solo mappa.");
+    console.warn("File tariffe.json non trovato, uso default.");
+    tariffeOperatori = { "default": { ac: 0.60, dc: 0.80 } };
+  }
+
+  try {
+    const risCarburanti = await fetch('data/distributori.json');
+    if (!risCarburanti.ok) throw new Error(`HTTP ${risCarburanti.status}`);
+    const dati = await risCarburanti.json();
+    distributoriCarburante = dati.distributori;
+    
+    if (dati.estrazione && typeof formattaData === 'function') {
+      dataPrezzi = formattaData(dati.estrazione);
+    }
+  } catch (e) {
+    console.error("Dati carburanti non trovati.");
   }
 }
 
@@ -139,7 +155,6 @@ async function caricaDatiDinamici() {
 
   caricamentoInCorso = true;
   const centro = mappa.getCenter();
-  // Chiama l'API gratuita di OpenChargeMap per 10km attorno al centro mappa
   const url = `https://api.openchargemap.io/v3/poi/?output=json&latitude=${centro.lat}&longitude=${centro.lng}&distance=10&distanceunit=KM&maxresults=50&key=04166cac-47ee-4596-bbc0-c030cfb71453`;
 
   try {
@@ -150,32 +165,41 @@ async function caricaDatiDinamici() {
     
     dati.forEach(poi => {
       const idGoccia = 'ocm_' + poi.ID;
-      // Evita duplicati
-      if (!distributori.find(d => d.id === idGoccia)) {
-        
-        // Verifica se ha prese lente (AC) o veloci (DC)
+      
+      // Salva nella lista EV
+      if (!distributoriEV.find(d => d.id === idGoccia)) {
         const haAC = poi.Connections?.some(c => c.LevelID <= 2 || c.PowerKW <= 22);
         const haDC = poi.Connections?.some(c => c.LevelID === 3 || c.PowerKW > 22);
         
-        // Mappatura dati API OpenChargeMap nel formato dell'app
+        const nomeOperatore = poi.OperatorInfo?.Title || 'Operatore Indipendente';
+        const opLower = nomeOperatore.toLowerCase();
+        
+        // Applica i prezzi reali dal listino
+        let tariffa = tariffeOperatori["default"] || { ac: 0.60, dc: 0.80 };
+        for (const [chiave, tariffe] of Object.entries(tariffeOperatori)) {
+          if (opLower.includes(chiave)) {
+            tariffa = tariffe;
+            break;
+          }
+        }
+
         const nuovoDistributore = {
           id: idGoccia,
           nome: poi.AddressInfo?.Title || 'Colonnina',
-          bandiera: poi.OperatorInfo?.Title || 'Operatore Indipendente',
+          bandiera: nomeOperatore,
           indirizzo: poi.AddressInfo?.AddressLine1 || '',
           comune: poi.AddressInfo?.Town || '',
           lat: poi.AddressInfo?.Latitude,
           lon: poi.AddressInfo?.Longitude,
           prezzi: {
-             // OCM non offre API pubbliche dei prezzi, quindi simuliamo tariffe medie nazionali per la UI
-             elettrica_ac: haAC ? { self: 0.65 } : null,
-             elettrica_dc: haDC ? { self: 0.89 } : null,
+             elettrica_ac: haAC ? { self: tariffa.ac } : null,
+             elettrica_dc: haDC ? { self: tariffa.dc } : null,
           },
           altri: {},
           aggiornato: poi.DateLastStatusUpdate || new Date().toISOString()
         };
         
-        distributori.push(nuovoDistributore);
+        distributoriEV.push(nuovoDistributore);
         nuoviAggiunti = true;
       }
     });
@@ -196,7 +220,7 @@ function aggiornaSorgentePuntini() {
   if (sorgente) {
     sorgente.setData({
       type: 'FeatureCollection',
-      features: distributori.map((d) => ({
+      features: getListaAttiva().map((d) => ({
         type: 'Feature',
         geometry: { type: 'Point', coordinates: [d.lon, d.lat] },
         properties: Object.fromEntries(Object.keys(NOMI).map((c) => [c, prezzoMigliore(d, c) != null])),
@@ -239,7 +263,7 @@ function aggiornaGocce() {
   }
 
   const area = mappa.getBounds();
-  const visibili = distributori
+  const visibili = getListaAttiva()
     .filter((d) => area.contains([d.lon, d.lat]))
     .map((d) => ({ d, ...prezzoMigliore(d, carburante) }))
     .filter((v) => v.prezzo != null)
@@ -263,7 +287,6 @@ function aggiornaGocce() {
   for (let k = scelte.length - 1; k >= 0; k--) {
     const { d, prezzo, modo } = scelte[k];
     
-    // Logica dei colori: se è elettrico usa classe CSS .elettrica (blu), altrimenti verde/giallo/rosso
     let fascia = 'rosso';
     if (carburante.startsWith('elettrica')) {
       fascia = 'elettrica';
@@ -271,7 +294,7 @@ function aggiornaGocce() {
       fascia = prezzo <= riferimento * (1 + MARGINE_VERDE) ? 'verde' : prezzo <= riferimento * (1 + MARGINE_GIALLO) ? 'giallo' : 'rosso';
     }
     
-    const piuEconomico = k === 0 && !carburante.startsWith('elettrica'); // Nessuna "Migliore" in elettrico avendo prezzi fissi simulati
+    const piuEconomico = k === 0 && !carburante.startsWith('elettrica');
 
     const elemento = document.createElement('button');
     elemento.type = 'button';
@@ -293,8 +316,8 @@ function mostraMigliore() {
   const riquadro = document.getElementById('migliore');
   const lontano = mappa.getZoom() < ZOOM_GOCCE;
 
-  document.getElementById('suggerimento').hidden = !lontano || selezionato != null || distributori.length === 0;
-  riquadro.hidden = lontano || selezionato != null || distributori.length === 0;
+  document.getElementById('suggerimento').hidden = !lontano || selezionato != null || getListaAttiva().length === 0;
+  riquadro.hidden = lontano || selezionato != null || getListaAttiva().length === 0;
 
   if (!riquadro.hidden) {
     if (!migliore) {
@@ -374,7 +397,10 @@ document.querySelectorAll('#carburanti button').forEach((pulsante) => {
     if (mappa.getLayer('puntini')) mappa.setFilter('puntini', ['==', ['get', carburante], true]);
     
     caricaDatiDinamici(); // Se clicco su elettrica, fa la chiamata API
-    aggiornaGocce();
+    
+    aggiornaSorgentePuntini(); // Rinfresca la sorgente dei puntini lontani
+    aggiornaGocce();           // Rinfresca i marker da vicino
+    
     if (selezionato) apriScheda(selezionato, false);
   });
 });
